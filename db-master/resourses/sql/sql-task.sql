@@ -98,3 +98,50 @@ WHERE t.ticket_no = (SELECT tf.ticket_no
                                      FROM ticket_flights)
                      LIMIT 1)
 group by t.ticket_no, book_ref, passenger_id, passenger_name, contact_data;
+
+-- Написать DDL таблицы Customers , должны быть поля id ,
+-- firstName, LastName, email , phone. Добавить ограничения на поля ( constraints).
+
+CREATE TABLE IF NOT EXISTS customers
+(
+    customer_id SERIAL,
+    first_name  varchar(128)                                         NOT NULL,
+    last_name   varchar(128)                                         NOT NULL,
+    email       varchar(128) UNIQUE                                  NOT NULL,
+    phone       BIGINT CHECK ( phone > 999999 AND phone < 100000000) NOT NULL,
+    PRIMARY KEY (customer_id)
+);
+
+-- Написать DDL таблицы Orders , должен быть id, customerId,
+-- quantity. Должен быть внешний ключ на таблицу customers + ограничения
+
+CREATE TABLE IF NOT EXISTS orders
+(
+    order_id       SERIAL,
+    customer_id_fk INT NOT NULL,
+    quantity       INT NOT NULL,
+    PRIMARY KEY (order_id),
+    FOREIGN KEY (customer_id_fk) REFERENCES customers
+);
+
+-- Написать 5 insert в эти таблицы
+
+INSERT INTO customers (first_name, last_name, email, phone)
+VALUES ('Alex', 'Alekseev', 'ni4esi@gmail.by', 12332155),
+       ('Karina', 'P-V', 'thedoorsoff@gmail.gb', 98765311),
+       ('Andrey', 'Kolomiets', 'kvnygenetot@planetakvn.rf', 79994645),
+       ('Andrey', 'Ponomarev', 'harleyoneal@naba.com', 59994645),
+       ('Luke', 'Neodnonogii', 'enakin@10000.napodhode', 1000000);
+
+INSERT INTO orders(customer_id_fk, quantity)
+VALUES (1, 15),
+       (2, 20),
+       (3, 25),
+       (4, 30),
+       (5, 333);
+
+-- удалить таблицы
+
+DROP TABLE IF EXISTS orders;
+
+DROP TABLE IF EXISTS customers;
