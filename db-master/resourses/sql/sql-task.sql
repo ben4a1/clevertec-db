@@ -9,6 +9,22 @@ FROM seats
 GROUP BY ad.model, seats.fare_conditions, seats.aircraft_code
 ORDER BY aircraft_code;
 
+SELECT ad.model,
+       (SELECT count(*)
+        FROM seats s
+        WHERE s.aircraft_code = ad.aircraft_code
+          AND s.fare_conditions = 'Business') AS business,
+       (SELECT count(*)
+        FROM seats s
+        WHERE s.aircraft_code = ad.aircraft_code
+          AND s.fare_conditions = 'Comfort')  AS comfort,
+       (SELECT count(*)
+        FROM seats s
+        WHERE s.aircraft_code = ad.aircraft_code
+          AND s.fare_conditions = 'Economy')  AS economy
+FROM aircrafts_data ad
+ORDER BY business, comfort, economy;
+
 --Найти 3 самых вместительных самолета (модель + кол-во мест)
 
 SELECT ad.model,
@@ -45,3 +61,23 @@ FROM (SELECT city, count(*)
          JOIN airports_data ad ON a.city = ad.city
 ORDER BY ad.city, ad.airport_name;
 
+SELECT city, count(*)
+FROM airports
+GROUP BY city
+HAVING count(*) > 1;
+
+-- Найти ближайший вылетающий рейс из Екатеринбурга в Москву,
+-- на который еще не завершилась регистрация
+
+SELECT fl.*
+FROM flights fl
+WHERE fl.departure_airport IN (SELECT airport_code
+                               FROM airports_data
+                               WHERE city ->> 'ru' LIKE '%Екатеринбург%')
+  AND fl.arrival_airport IN (SELECT airport_code
+                             FROM airports_data
+                             WHERE city ->> 'ru' LIKE '%Москва%')
+  AND (status = 'On Time' OR status = 'Delayed')
+  AND fl.scheduled_departure > bookings.now()
+ORDER BY fl.scheduled_departure
+LIMIT 1;
