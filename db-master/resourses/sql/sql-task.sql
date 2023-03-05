@@ -35,6 +35,7 @@ GROUP BY ad.model
 ORDER BY count(fare_conditions) DESC
 LIMIT 3;
 
+
 -- Вывести код,модель самолета и места не эконом класса
 -- для самолета 'Аэробус A321-200' с сортировкой по местам
 
@@ -145,3 +146,42 @@ VALUES (1, 15),
 DROP TABLE IF EXISTS orders;
 
 DROP TABLE IF EXISTS customers;
+
+-- Написать свой кастомный запрос ( rus + sql)
+
+/*
+    Необходимо проследить за наполняемостью бортов,
+    ибо есть предположение, что из Магадана в Сыктывкар летают мало пассажиров
+ */
+SELECT ts.flight_id,
+       ts.flight_no,
+       ts.departure_airport,
+       ts.arrival_airport,
+       a.model,
+       ts.fact_passengers,
+       ts.total_seats,
+       round(ts.fact_passengers::numeric /
+             ts.total_seats::numeric, 2) AS fraction
+FROM (SELECT f.flight_id,
+             f.flight_no,
+             f.scheduled_departure,
+             f.departure_airport,
+             f.arrival_airport,
+             f.aircraft_code,
+             count(tf.ticket_no)                       AS fact_passengers,
+             (SELECT count(s.seat_no)
+              FROM seats s
+              WHERE s.aircraft_code = f.aircraft_code) AS total_seats
+      FROM flights f
+               JOIN ticket_flights tf
+                    ON f.flight_id = tf.flight_id
+      WHERE f.status = 'Arrived'
+      GROUP BY 1, 2, 3, 4, 5, 6) AS ts
+         JOIN aircrafts AS a
+              ON ts.aircraft_code = a.aircraft_code
+ORDER BY fraction;
+
+
+
+
+
