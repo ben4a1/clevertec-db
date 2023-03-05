@@ -81,3 +81,20 @@ WHERE fl.departure_airport IN (SELECT airport_code
   AND fl.scheduled_departure > bookings.now()
 ORDER BY fl.scheduled_departure
 LIMIT 1;
+
+--Вывести самый дешевый и дорогой билет и стоимость ( в одном результирующем ответе)
+
+SELECT t.*, min(tf.amount), max(tf.amount)
+FROM tickets t
+         JOIN ticket_flights tf on t.ticket_no = tf.ticket_no
+WHERE t.ticket_no = (SELECT tf.ticket_no
+                     FROM ticket_flights tf
+                     WHERE amount = (SELECT MIN(amount)
+                                     FROM ticket_flights)
+                     LIMIT 1)
+   OR t.ticket_no = (SELECT tf.ticket_no
+                     FROM ticket_flights tf
+                     WHERE amount = (SELECT MAX(amount)
+                                     FROM ticket_flights)
+                     LIMIT 1)
+group by t.ticket_no, book_ref, passenger_id, passenger_name, contact_data;
