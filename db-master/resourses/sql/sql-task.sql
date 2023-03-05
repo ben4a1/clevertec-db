@@ -23,15 +23,11 @@ LIMIT 3;
 -- для самолета 'Аэробус A321-200' с сортировкой по местам
 
 SELECT ad.aircraft_code,
-       model -> 'ru' as model,
+       ad.model,
        s.fare_conditions,
        s."seat_no"
 FROM seats s
          JOIN aircrafts_data ad on ad.aircraft_code = s.aircraft_code
 WHERE NOT s.fare_conditions = 'Economy'
-  AND model = 'Аэробус A321-200'
+  AND model->>'ru' LIKE '%Аэробус A321-200'
 ORDER BY s.seat_no;
-
-SELECT model -> 'ru' as model
-FROM aircrafts_data;
-
